@@ -4,62 +4,190 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Visibilitat de l’eclipsi — 12 d’agost de 2026</title>
-
-  <!-- SEO bàsic -->
-  <meta name="description" content="Consulta la visibilitat i durada de l’eclipsi solar del 12 d’agost de 2026 per qualsevol poble. Inclou mapa amb la franja de totalitat." />
-
-  <!-- Leaflet -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <style>
-    body{margin:0;font-family:system-ui;background:#020617;color:#fff}
-    main{max-width:1100px;margin:auto;padding:20px}
-    h1{font-size:2rem}
-    input,button{padding:10px;font-size:1rem}
-    #map{height:300px;margin-top:10px}
+    :root {
+      --bg-0:#040714; --bg-1:#08111f; --text:#f8fafc; --muted:#a8b4d6; --stroke:rgba(255,255,255,.13);
+      --stroke-strong:rgba(255,255,255,.22); --sun:#fbbf24; --moon:#111827; --accent:#67e8f9;
+      --ok:#86efac; --warn:#fde68a; --bad:#fca5a5;
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--text); min-height:100vh; overflow-x:hidden;
+      background:radial-gradient(circle at 12% 18%, rgba(251,191,36,.15), transparent 24rem), radial-gradient(circle at 88% 8%, rgba(103,232,249,.14), transparent 25rem), radial-gradient(circle at 72% 88%, rgba(167,139,250,.13), transparent 28rem), linear-gradient(145deg, var(--bg-0), var(--bg-1) 46%, #020617);
+    }
+    body::before, body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:-1; }
+    body::before { background-image:radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 1.4px), radial-gradient(circle, rgba(255,255,255,.26) 0 1px, transparent 1.2px); background-size:86px 86px, 137px 137px; background-position:0 0, 34px 55px; mask-image:linear-gradient(to bottom, rgba(0,0,0,.9), rgba(0,0,0,.25)); opacity:.45; }
+    body::after { background:linear-gradient(105deg, transparent 0 38%, rgba(103,232,249,.08) 40%, transparent 43%), linear-gradient(115deg, transparent 0 54%, rgba(251,191,36,.07) 55%, transparent 57%); }
+    main { width:min(1120px, 100%); margin:auto; padding:34px 20px; }
+    .shell { display:grid; grid-template-columns:1.02fr .98fr; gap:28px; align-items:center; min-height:calc(100vh - 68px); }
+    .eyebrow { display:inline-flex; align-items:center; gap:10px; margin-bottom:18px; padding:9px 13px; border:1px solid rgba(103,232,249,.28); border-radius:999px; color:#cffafe; background:rgba(8,47,73,.36); box-shadow:0 0 40px rgba(103,232,249,.08); font-size:.88rem; font-weight:800; letter-spacing:.04em; text-transform:uppercase; }
+    .dot { width:9px; height:9px; border-radius:999px; background:var(--accent); box-shadow:0 0 18px var(--accent); }
+    h1 { margin:0; font-size:clamp(2.65rem, 7vw, 6.2rem); line-height:.88; letter-spacing:-.075em; text-wrap:balance; }
+    h1 span { display:block; color:transparent; background:linear-gradient(110deg, #fff7ed, #fbbf24 34%, #fb7185 62%, #67e8f9); -webkit-background-clip:text; background-clip:text; }
+    .lead { color:var(--muted); font-size:1.08rem; max-width:670px; margin:24px 0 0; line-height:1.7; }
+    .facts { display:flex; flex-wrap:wrap; gap:10px; margin-top:26px; }
+    .pill { border:1px solid var(--stroke); background:rgba(255,255,255,.055); border-radius:999px; padding:10px 13px; color:#dbeafe; font-size:.93rem; backdrop-filter:blur(10px); }
+    .visual { position:relative; min-height:470px; display:grid; place-items:center; }
+    .orbit { position:absolute; width:min(480px, 92vw); aspect-ratio:1; border:1px solid rgba(255,255,255,.11); border-radius:50%; animation:spin 38s linear infinite; }
+    .orbit::before, .orbit::after { content:""; position:absolute; inset:44px; border:1px dashed rgba(103,232,249,.18); border-radius:50%; }
+    .orbit::after { inset:98px; border-color:rgba(251,191,36,.18); animation:spin 20s linear infinite reverse; }
+    .eclipse-mark { position:relative; width:min(315px, 72vw); aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 48% 50%, #fff7d6 0 9%, #fde68a 21%, #f59e0b 43%, #fb7185 58%, transparent 70%); box-shadow:0 0 32px rgba(251,191,36,.9), 0 0 90px rgba(251,191,36,.45), 0 0 150px rgba(251,113,133,.22); animation:pulse 4.8s ease-in-out infinite; }
+    .eclipse-mark::before { content:""; position:absolute; width:72%; aspect-ratio:1; border-radius:50%; left:14%; top:14%; background:radial-gradient(circle at 34% 32%, #243044 0 6%, var(--moon) 43%, #020617 74%); box-shadow:inset -22px -20px 40px rgba(0,0,0,.55), inset 18px 15px 30px rgba(255,255,255,.035), 0 0 42px rgba(0,0,0,.7); }
+    .eclipse-mark::after { content:""; position:absolute; inset:-24px; border-radius:50%; border:1px solid rgba(255,255,255,.16); box-shadow:inset 0 0 34px rgba(255,255,255,.06); }
+    .path-card { position:absolute; left:0; bottom:18px; width:min(315px, 82vw); padding:16px; border:1px solid var(--stroke); border-radius:24px; background:rgba(2,6,23,.62); backdrop-filter:blur(16px); box-shadow:0 24px 70px rgba(0,0,0,.34); }
+    .path-card b { display:block; margin-bottom:8px; }
+    .path-line { height:9px; border-radius:999px; background:linear-gradient(90deg, transparent, rgba(103,232,249,.95), rgba(251,191,36,.95), rgba(103,232,249,.95), transparent); box-shadow:0 0 25px rgba(103,232,249,.35); margin:12px 0; }
+    .path-card small { color:var(--muted); line-height:1.5; display:block; }
+    .card { position:relative; overflow:hidden; background:linear-gradient(180deg, rgba(15,23,42,.86), rgba(15,23,42,.66)); border:1px solid var(--stroke-strong); border-radius:34px; padding:24px; box-shadow:0 28px 95px rgba(0,0,0,.42); backdrop-filter:blur(18px); }
+    .card::before { content:""; position:absolute; inset:0; background:radial-gradient(circle at top left, rgba(251,191,36,.16), transparent 16rem), radial-gradient(circle at bottom right, rgba(103,232,249,.12), transparent 14rem); pointer-events:none; }
+    .panel-title, form, .result, .source, .error { position:relative; z-index:1; }
+    .panel-title { margin-bottom:16px; }
+    .panel-title h2 { margin:0 0 6px; font-size:1.45rem; letter-spacing:-.035em; }
+    .panel-title p { margin:0; color:var(--muted); line-height:1.55; }
+    form { display:grid; grid-template-columns:1fr auto; gap:12px; margin-top:18px; padding:8px; border:1px solid rgba(255,255,255,.1); border-radius:24px; background:rgba(2,6,23,.42); }
+    input { min-width:0; padding:17px; border-radius:18px; border:1px solid transparent; background:rgba(15,23,42,.72); color:var(--text); font-size:1rem; outline:none; }
+    input::placeholder { color:#7280a1; }
+    input:focus { border-color:rgba(103,232,249,.7); box-shadow:0 0 0 4px rgba(103,232,249,.12); }
+    button { border:0; border-radius:18px; padding:0 22px; min-height:54px; font-weight:900; cursor:pointer; color:#020617; background:linear-gradient(135deg,#fef3c7,#fbbf24 42%,#67e8f9); font-size:1rem; box-shadow:0 14px 35px rgba(251,191,36,.22); transition:transform .18s ease, filter .18s ease; }
+    button:hover { transform:translateY(-1px); filter:saturate(1.08); }
+    button:disabled { opacity:.64; cursor:wait; transform:none; }
+    .result { margin-top:18px; display:none; }
+    #map { width:100%; height:330px; border-radius:22px; border:1px solid rgba(255,255,255,.14); margin:10px 0 14px; overflow:hidden; background:#0f172a; box-shadow:0 18px 55px rgba(0,0,0,.24); }
+    .map-legend { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; color:#dbeafe; font-size:.88rem; }
+    .legend-pill { display:inline-flex; align-items:center; gap:7px; padding:7px 10px; border-radius:999px; background:rgba(2,6,23,.55); border:1px solid rgba(255,255,255,.12); }
+    .swatch { width:18px; height:8px; border-radius:999px; display:inline-block; }
+    .swatch-path { background:rgba(251,191,36,.72); }
+    .swatch-line { background:#67e8f9; }
+    .grid { display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin:16px 0; }
+    .metric { position:relative; overflow:hidden; background:rgba(2,6,23,.48); border:1px solid rgba(255,255,255,.1); border-radius:22px; padding:17px; min-height:104px; }
+    .metric::after { content:""; position:absolute; right:-30px; top:-30px; width:76px; height:76px; border-radius:50%; background:radial-gradient(circle, rgba(103,232,249,.18), transparent 70%); }
+    .metric small { display:block; color:var(--muted); margin-bottom:8px; font-weight:700; }
+    .metric b { position:relative; z-index:1; display:block; font-size:1.35rem; letter-spacing:-.025em; overflow-wrap:anywhere; }
+    .status { padding:15px 17px; border-radius:20px; font-weight:900; margin-top:14px; letter-spacing:-.01em; }
+    .total { background:rgba(134,239,172,.13); border:1px solid rgba(134,239,172,.48); color:var(--ok); box-shadow:0 0 34px rgba(134,239,172,.08); }
+    .partial { background:rgba(253,230,138,.13); border:1px solid rgba(253,230,138,.48); color:var(--warn); box-shadow:0 0 34px rgba(253,230,138,.08); }
+    .none { background:rgba(252,165,165,.13); border:1px solid rgba(252,165,165,.48); color:var(--bad); box-shadow:0 0 34px rgba(252,165,165,.08); }
+    .note, .source { color:var(--muted); font-size:.94rem; line-height:1.62; }
+    .source { margin:18px 0 0; padding-top:16px; border-top:1px solid rgba(255,255,255,.1); }
+    .source a { color:#bae6fd; text-decoration:none; border-bottom:1px solid rgba(186,230,253,.36); }
+    .error { margin:14px 0 0; color:var(--bad); display:none; font-weight:700; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { background:#0f172a; color:#f8fafc; border:1px solid rgba(255,255,255,.14); }
+    @keyframes pulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.025); } }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:960px){ .shell { grid-template-columns:1fr; min-height:auto; } .visual { min-height:410px; order:-1; } .path-card { left:50%; transform:translateX(-50%); } .hero { text-align:center; } .lead { margin-left:auto; margin-right:auto; } .facts { justify-content:center; } }
+    @media (max-width:640px){ main { padding:20px 14px; } .visual { min-height:330px; } .eclipse-mark { width:min(245px, 72vw); } .orbit { width:min(345px, 92vw); } .path-card { display:none; } .card { border-radius:26px; padding:18px; } form { grid-template-columns:1fr; } button { width:100%; } .grid { grid-template-columns:1fr; } h1 { font-size:clamp(2.45rem, 14vw, 4rem); } #map { height:300px; } }
   </style>
 </head>
 <body>
 <main>
-  <h1>Eclipsi solar 2026</h1>
-
-  <p><b>Com publicar aquesta web:</b></p>
-  <ol>
-    <li>Desa aquest fitxer com <code>index.html</code></li>
-    <li>Tria una opció de publicació:</li>
-  </ol>
-
-  <h3>Opció 1 — GitHub Pages (recomanat)</h3>
-  <ol>
-    <li>Ves a <b>github.com</b> i crea un repositori</li>
-    <li>Puja aquest fitxer <code>index.html</code></li>
-    <li>Ves a <b>Settings → Pages</b></li>
-    <li>Activa Pages des de la branca <code>main</code></li>
-    <li>Tindràs una URL tipus:<br><code>https://el-teu-usuari.github.io/nom-repo</code></li>
-  </ol>
-
-  <h3>Opció 2 — Netlify (molt fàcil)</h3>
-  <ol>
-    <li>Ves a <b>netlify.com</b></li>
-    <li>Arrossega el fitxer <code>index.html</code></li>
-    <li>Ja estarà publicada amb una URL pública</li>
-  </ol>
-
-  <h3>Opció 3 — Local (provar-ho)</h3>
-  <ol>
-    <li>Fes doble clic a <code>index.html</code></li>
-    <li>S’obrirà al navegador</li>
-  </ol>
-
-  <hr>
-
-  <p>A sota tens el teu projecte complet:</p>
-
-  <!-- AQUÍ COMENÇA EL PROJECTE ORIGINAL -->
-
-  <!-- (he mantingut tot el teu codi original sense tocar funcionalitat) -->
-
+  <div class="shell">
+    <section class="hero">
+      <div class="eyebrow"><span class="dot"></span> Ombra lunar · Península Ibèrica · 12/08/2026</div>
+      <h1>Calcula la teva <span>totalitat</span></h1>
+      <p class="lead">Escriu el nom d’un poble i estima si quedarà dins la franja de l’eclipsi solar total del 12 d’agost de 2026, amb durada aproximada, obscuració, hora del màxim i altura del Sol.</p>
+      <div class="facts" aria-label="Referències de l’eclipsi">
+        <span class="pill">☉ Corona solar</span><span class="pill">● Ombra de la Lluna</span><span class="pill">⌁ Línia central NASA/GSFC</span><span class="pill">↙ Sol baix a l’oest</span>
+      </div>
+    </section>
+    <section class="visual" aria-hidden="true">
+      <div class="orbit"></div><div class="eclipse-mark"></div>
+      <aside class="path-card"><b>Franja de totalitat</b><div class="path-line"></div><small>La durada màxima es dona prop de la línia central. Als límits de la franja, la totalitat cau ràpidament.</small></aside>
+    </section>
+    <section class="card">
+      <div class="panel-title"><h2>Consulta una ubicació</h2><p>Funciona millor amb “poble, comarca/província” si el nom és ambigu.</p></div>
+      <form id="form"><input id="place" autocomplete="off" placeholder="Ex.: Tarragona, Vic, Burgos, València, Palma..." required /><button id="btn">Calcular</button></form>
+      <p id="error" class="error"></p>
+      <div id="result" class="result">
+        <div id="map"></div>
+        <div class="map-legend"><span class="legend-pill"><span class="swatch swatch-path"></span>Franja de totalitat</span><span class="legend-pill"><span class="swatch swatch-line"></span>Línia central</span></div>
+        <div id="status" class="status"></div>
+        <div class="grid">
+          <div class="metric"><small>Ubicació detectada</small><b id="where">—</b></div><div class="metric"><small>Durada de totalitat</small><b id="duration">—</b></div>
+          <div class="metric"><small>Obscuració estimada</small><b id="obscuration">—</b></div><div class="metric"><small>Hora estimada del màxim</small><b id="maxTime">—</b></div>
+          <div class="metric"><small>Altura solar estimada</small><b id="sunAlt">—</b></div><div class="metric"><small>Distància a la línia central</small><b id="distance">—</b></div>
+        </div>
+        <p id="note" class="note"></p>
+      </div>
+      <p class="source">Model orientatiu basat en la taula de trajectòria de la <a href="https://eclipse.gsfc.nasa.gov/SEpath/SEpath2001/SE2026Aug12Tpath.html" target="_blank" rel="noreferrer">NASA/GSFC</a>: límits nord/sud, línia central, amplada del camí i durada central cada 2 minuts. Per a observació real, comprova el municipi amb les taules oficials de l’IGN i revisa l’horitzó oest: a Espanya l’eclipsi serà molt baix, prop de la posta.</p>
+    </section>
+  </div>
 </main>
+
+<script>
+const central = [
+  {t:'18:22', lat:47.1017, lon:-11.7150, width:318, dur:118.8, alt:16}, {t:'18:24', lat:45.9433, lon:-10.1900, width:315, dur:116.1, alt:14},
+  {t:'18:26', lat:44.7133, lon:-8.3983, width:311, dur:113.0, alt:13}, {t:'18:28', lat:43.3717, lon:-6.1883, width:304, dur:109.3, alt:10},
+  {t:'18:30', lat:41.8167, lon:-3.1850, width:294, dur:104.6, alt:8}, {t:'18:32', lat:39.4083, lon:2.9500, width:270, dur:95.8, alt:2},
+  {t:'18:33', lat:38.6800, lon:5.4150, width:262, dur:92.8, alt:0}
+];
+const pathPoly = [
+  [47.0383,-8.8017],[45.8017,-7.0767],[44.4567,-4.9483],[42.9083,-2.0850],[40.6650,3.2950],[39.7083,6.3400],
+  [37.6900,4.5400],[40.6833,-4.0400],[42.2633,-7.2367],[43.6067,-9.5517],[44.8317,-11.4200],[45.9833,-13.0083],[47.0833,-14.3967]
+];
+const centralLine = central.map(p => [p.lat, p.lon]);
+const $ = id => document.getElementById(id);
+const R = 6371;
+let map, marker, totalityLayer, centralLayer;
+function rad(d){ return d*Math.PI/180; }
+function hav(a,b){ const dLat=rad(b.lat-a.lat), dLon=rad(b.lon-a.lon); const s=Math.sin(dLat/2)**2 + Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2; return 2*R*Math.asin(Math.sqrt(s)); }
+function fmtSecs(s){ if(s<=0) return '0 s'; const m=Math.floor(s/60), sec=Math.round(s%60); return m ? `${m} min ${String(sec).padStart(2,'0')} s` : `${sec} s`; }
+function pointInPoly(lat, lon, poly){ let inside=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){ const yi=poly[i][0], xi=poly[i][1], yj=poly[j][0], xj=poly[j][1]; const hit=((yi>lat)!=(yj>lat)) && (lon < (xj-xi)*(lat-yi)/(yj-yi)+xi); if(hit) inside=!inside; } return inside; }
+function projectDistanceKm(p, a, b){
+  const lat0=rad((p.lat+a.lat+b.lat)/3), x=p.lon*Math.cos(lat0), y=p.lat, x1=a.lon*Math.cos(lat0), y1=a.lat, x2=b.lon*Math.cos(lat0), y2=b.lat;
+  const dx=x2-x1, dy=y2-y1; let u=((x-x1)*dx+(y-y1)*dy)/(dx*dx+dy*dy); u=Math.max(0,Math.min(1,u));
+  const q={lat:y1+u*dy, lon:(x1+u*dx)/Math.cos(lat0)}; return {d:hav(p,q), u, q};
+}
+function nearestOnCentral(p){ let best=null; for(let i=0;i<central.length-1;i++){ const r=projectDistanceKm(p, central[i], central[i+1]); if(!best || r.d<best.d) best={...r, i}; } return best; }
+function lerp(a,b,u){ return a+(b-a)*u; }
+function localMaxTime(i,u){ const [h1,m1]=central[i].t.split(':').map(Number), [h2,m2]=central[i+1].t.split(':').map(Number); const minutes=lerp(h1*60+m1,h2*60+m2,u)+120; return `${String(Math.floor(minutes/60)).padStart(2,'0')}:${String(Math.round(minutes%60)).padStart(2,'0')} CEST`; }
+function estimate(p){
+  const n=nearestOnCentral(p), a=central[n.i], b=central[n.i+1];
+  const width=lerp(a.width,b.width,n.u), centralDur=lerp(a.dur,b.dur,n.u), alt=lerp(a.alt,b.alt,n.u), half=width/2;
+  const inside=pointInPoly(p.lat,p.lon,pathPoly) && n.d <= half+8;
+  let totalDur=0, obsc=0;
+  if(inside){ totalDur=centralDur*Math.sqrt(Math.max(0,1-(n.d/half)**2)); obsc=100; }
+  else { const beyond=Math.max(0,n.d-half); obsc=Math.max(55,Math.min(99.8,100-beyond/22)); }
+  return {inside,totalDur,obsc,dist:n.d,width,alt,maxTime:localMaxTime(n.i,n.u)};
+}
+async function geocode(q){
+  const url=`https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=ca&q=${encodeURIComponent(q)}`;
+  const res=await fetch(url, {headers:{'Accept':'application/json'}});
+  if(!res.ok) throw new Error('No s’ha pogut consultar el geocodificador.');
+  const data=await res.json(); if(!data.length) throw new Error('No he trobat aquest poble. Prova d’afegir comarca, província o país.');
+  return {lat:+data[0].lat, lon:+data[0].lon, name:data[0].display_name};
+}
+function ensureMap(lat, lon, label){
+  if(!map){
+    map = L.map('map', { zoomControl:true }).setView([lat, lon], 7);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; OpenStreetMap' }).addTo(map);
+    totalityLayer = L.polygon(pathPoly, { color:'#fbbf24', weight:2, opacity:.9, fillColor:'#fbbf24', fillOpacity:.22 }).addTo(map).bindPopup('Franja aproximada de totalitat');
+    centralLayer = L.polyline(centralLine, { color:'#67e8f9', weight:3, opacity:.95, dashArray:'8 8' }).addTo(map).bindPopup('Línia central aproximada');
+  }
+  if(marker) marker.setLatLng([lat, lon]).bindPopup(label).openPopup();
+  else marker = L.marker([lat, lon]).addTo(map).bindPopup(label).openPopup();
+  const bounds = L.latLngBounds([[lat, lon], ...pathPoly]);
+  map.fitBounds(bounds, { padding:[24,24], maxZoom:7 });
+}
+$('form').addEventListener('submit', async e => {
+  e.preventDefault(); $('error').style.display='none'; $('result').style.display='none'; $('btn').disabled=true; $('btn').textContent='Calculant...';
+  try{
+    const g=await geocode($('place').value.trim()); const r=estimate(g);
+    $('where').textContent = g.name.split(',').slice(0,3).join(', ');
+    $('duration').textContent = r.inside ? fmtSecs(r.totalDur) : 'No hi ha totalitat';
+    $('obscuration').textContent = r.inside ? '100%' : `~${r.obsc.toFixed(1)}%`;
+    $('maxTime').textContent = r.maxTime;
+    $('sunAlt').textContent = `~${Math.max(0,r.alt).toFixed(1)}°`;
+    $('distance').textContent = `~${Math.round(r.dist)} km`;
+    $('status').className = 'status ' + (r.inside ? 'total' : (r.obsc > 80 ? 'partial' : 'none'));
+    $('status').textContent = r.inside ? 'Eclipsi TOTAL visible en aquesta ubicació' : 'Eclipsi PARCIAL visible en aquesta ubicació';
+    $('note').textContent = r.inside ? 'Estimació: ets dins la franja de totalitat. La durada real pot variar uns segons per relleu lunar, altitud local i precisió de la geocodificació. Busca un horitzó oest/nord-oest completament lliure.' : 'Estimació: no ets dins la franja de totalitat, però el Sol quedarà molt ocult. La xifra d’obscuració és aproximada; per dades oficials exactes de contactes, usa les taules municipals de l’IGN.';
+    $('result').style.display='block';
+    setTimeout(()=>{ ensureMap(g.lat, g.lon, $('where').textContent); map.invalidateSize(); }, 0);
+  } catch(err){ $('error').textContent=err.message; $('error').style.display='block'; }
+  finally{ $('btn').disabled=false; $('btn').textContent='Calcular'; }
+});
+</script>
 </body>
 </html>
